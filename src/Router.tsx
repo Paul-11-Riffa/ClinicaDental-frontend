@@ -17,13 +17,38 @@ import RegistrarHistoriaClinica from "./pages/RegistrarHistoriaClinica";
 import UsuariosySeguridad from "./components/UsuariosySeguridad";
 import ConsultarHistoriaClinica from "./pages/ConsultarHistoriaClinica";
 import ConsultarHistoriaClinicaPaciente from "./pages/ConsultarHistoriaClinicaPaciente";
-import PolticasNoShow from "./pages/CrearPoliticaNoShow"
+import PolticasNoShow from "./pages/CrearPoliticaNoShow";
+import Reportes from "./pages/Reportes";
+import LandingCompra from "./pages/LandingCompra";
+
+// Función para detectar si hay subdominio
+function tieneSubdominio(): boolean {
+  const hostname = window.location.hostname;
+  
+  // localhost sin subdominio
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return false;
+  }
+  
+  // localhost con subdominio (norte.localhost, sur.localhost)
+  if (hostname.includes('localhost')) {
+    const parts = hostname.split('.');
+    return parts.length > 1 && parts[0] !== 'localhost' && parts[0] !== '127';
+  }
+  
+  // Producción: verificar si hay subdominio (norte.tudominio.com)
+  const parts = hostname.split('.');
+  return parts.length >= 3 && parts[0] !== 'www';
+}
+
 export const router = createBrowserRouter([
     {
         path: "/",
         element: <Root/>,
         children: [
-            {index: true, element: <Home/>},
+            // Si NO hay subdominio, mostrar landing de compra
+            // Si hay subdominio, mostrar Home normal
+            {index: true, element: tieneSubdominio() ? <Home/> : <LandingCompra/>},
 
             // Públicas
             {path: "/login", element: <Login/>},
@@ -103,7 +128,23 @@ export const router = createBrowserRouter([
                 ),
             },
             {
+                path: "/registrar-historia-clinica",
+                element: (
+                    <ProtectedRoute>
+                        <RegistrarHistoriaClinica/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
                 path: "/historias/consultar",
+                element: (
+                    <ProtectedRoute>
+                        <ConsultarHistoriaClinica/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/consultar-historia-clinica",
                 element: (
                     <ProtectedRoute>
                         <ConsultarHistoriaClinica/>
@@ -124,6 +165,16 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <ConsultarHistoriaClinicaPaciente/>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Reportes (protegida - solo administradores)
+            {
+                path: "/reportes",
+                element: (
+                    <ProtectedRoute>
+                        <Reportes/>
                     </ProtectedRoute>
                 ),
             },

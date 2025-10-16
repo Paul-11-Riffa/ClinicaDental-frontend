@@ -29,11 +29,17 @@ export const TENANT_SUBDOMAIN: string | null = currentTenant;
 // Opcional para debugging global en el navegador
 ;(window as any).__TENANT__ = currentTenant;
 
-const baseURL: string = import.meta.env.DEV
-  ? "/api" // DEV: Usa proxy de Vite
-  : `https://${(
-      (import.meta.env.VITE_API_BASE as string | undefined) ?? "notificct.dpdns.org"
-    ).replace(/^https?:\/\//, "").replace(/\/$/, "")}/api`;
+// Construcción de baseURL con soporte para multi-tenancy
+const baseURL: string = (() => {
+  if (import.meta.env.DEV) {
+    // Desarrollo: Usar localhost:8000 directamente con header X-Tenant-Subdomain
+    return "http://localhost:8000/api";
+  } else {
+    // Producción: usar subdominios reales
+    const hostname = window.location.hostname;
+    return `https://${hostname}/api`;
+  }
+})();
 
 console.log("🔧 API Configuration:");
 console.log("- Environment:", import.meta.env.DEV ? "development" : "production");
@@ -95,8 +101,8 @@ Api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   // --- Headers para multi-tenancy y CSRF ---
   const hdrs = AxiosHeaders.from(config.headers);
 
-  // Enviar subdominio detectado como header para multi-tenancy (el MISMO que ves en consola)
-  if (TENANT_SUBDOMAIN) {
+  // En desarrollo, enviar subdominio como header para multi-tenancy
+  if (import.meta.env.DEV && TENANT_SUBDOMAIN) {
     hdrs.set("X-Tenant-Subdomain", TENANT_SUBDOMAIN);
   }
 

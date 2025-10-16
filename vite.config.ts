@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => ({
     plugins: [react(), tailwindcss()],
     server: mode === "development"
         ? {
-            host: 'localhost', // Permite acceso desde subdominios
+            host: '0.0.0.0', // Permite acceso desde subdominios y IPs
             port: 5173,
             proxy: {
                 "/api": {

@@ -121,25 +121,6 @@ export default function AdminDashboard() {
           {/* Header con botón de regreso */}
           <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-10">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setActiveView('dashboard')}
-                className="p-2 rounded-lg hover:bg-white/50 transition-colors"
-                title="Volver al dashboard"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
               <img src="/dentist.svg" className="w-7 h-7 sm:w-8 sm:h-8" alt="" />
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Gestión de Consentimientos
@@ -247,25 +228,6 @@ export default function AdminDashboard() {
           {/* Header con botón de regreso */}
           <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-10">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setActiveView('dashboard')}
-                className="p-2 rounded-lg hover:bg-white/50 transition-colors"
-                title="Volver al dashboard"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
               <img src="/dentist.svg" className="w-7 h-7 sm:w-8 sm:h-8" alt="" />
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Bitácora de Auditoría
@@ -430,6 +392,70 @@ export default function AdminDashboard() {
                 </p>
                 <p className="text-xs sm:text-sm text-gray-500">
                   KPI clínicos y financieros
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Registrar Historia Clínica */}
+          <Link
+            to="/registrar-historia-clinica"
+            className="group bg-white/80 border border-green-100 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-green-100 grid place-items-center shrink-0">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-green-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                  Registrar Historia Clínica
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Nueva historia para paciente
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Consultar Historia Clínica */}
+          <Link
+            to="/consultar-historia-clinica"
+            className="group bg-white/80 border border-blue-100 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-100 grid place-items-center shrink-0">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-blue-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                  Consultar Historias Clínicas
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Ver historial de pacientes
                 </p>
               </div>
             </div>

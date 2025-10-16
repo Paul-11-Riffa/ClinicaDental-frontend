@@ -53,7 +53,7 @@ export default function RegisterPatientBackend({ payload, onDone }: Props): null
         // 1) siembra CSRF (set-cookie: csrftoken)
         await Api.get("/auth/csrf/");
         const csrf = getCookie("csrftoken");
-        const headers = csrf ? { "X-CSRFToken": csrf } : undefined;
+  const headers: Record<string, string> = csrf ? { "X-CSRFToken": csrf } : {};
 
         // 2) body (rol no se envía; back asume "paciente")
         const body = {
@@ -68,8 +68,9 @@ export default function RegisterPatientBackend({ payload, onDone }: Props): null
           carnetidentidad: payload.carnetidentidad,
           idtipousuario: payload.idtipousuario,
         };
-
-        const { data } = await Api.post<RegisterSuccess>("/auth/register/", body, { headers });
+        // Endpoint real del backend
+        const registerUrl = "/auth/register/";
+        const { data } = await Api.post<RegisterSuccess>(registerUrl, body, { headers });
         onDone({ ok: true, data });
       } catch (err: unknown) {
         const error: RegisterError = {};

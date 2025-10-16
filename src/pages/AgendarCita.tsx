@@ -122,8 +122,10 @@ const AgendarCita = () => {
         return <div>Cargando...</div>; // Muestra un mensaje de carga mientras el usuario se establece
     }
 
-    // Si el usuario NO es un paciente (rol ID 2), muestra un mensaje y no el formulario.
-    if (user.idtipousuario !== 2) {
+    // Si el usuario NO es un paciente (usando subtipo o fallback a idtipousuario), muestra un mensaje y no el formulario.
+    const esPaciente = user.subtipo === "paciente" || user.idtipousuario === 2;
+    
+    if (!esPaciente) {
         return (
             <div className="min-h-screen bg-gray-50">
                 <TopBar/>

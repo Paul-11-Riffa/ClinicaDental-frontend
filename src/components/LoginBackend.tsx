@@ -89,21 +89,19 @@ export default function LoginBackend({ payload, onDone }: Props): null {
           console.warn("LoginBackend: Error obteniendo CSRF, continuando sin él:", csrfError);
         }
 
-        const csrf = getCookie("csrftoken");
-        const headers = csrf ? { "X-CSRFToken": csrf } : undefined;
+          const csrf = getCookie("csrftoken");
+    const headers: Record<string, string> = csrf ? { "X-CSRFToken": csrf } : {};
 
-        // 2) Body para login
-        const body = {
-          email: payload.email,
-          password: payload.password,
-        };
+          // 2) Body para login
+          const body = {
+            email: payload.email,
+            password: payload.password,
+          };
 
-        const loginUrl = Api.defaults.baseURL + "/auth/login/";
+        const loginUrl = "/auth/login/";
         console.log("LoginBackend: Enviando login a", loginUrl);
         console.log("LoginBackend: Payload:", { email: payload.email, password: "[OCULTA]" });
-        console.log("LoginBackend: Headers:", headers);
-
-        const { data } = await Api.post<LoginSuccess>("/auth/login/", body, { headers });
+        console.log("LoginBackend: Headers:", headers);          const { data } = await Api.post<LoginSuccess>(loginUrl, body, { headers });
 
         console.log("=== RESPUESTA COMPLETA DEL SERVIDOR ===");
         console.log("Data completa:", data);
