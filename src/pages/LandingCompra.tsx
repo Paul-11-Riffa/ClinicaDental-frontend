@@ -192,7 +192,7 @@ const FormularioRegistro = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Datos empresa, 2: Datos admin, 3: Pago
 
-  const [formData, setFormData] = useState<RegistroEmpresaData>({
+  const [formData, setFormData] = useState({
     nombre_empresa: '',
     subdominio: '',
     telefono: '',
@@ -200,9 +200,9 @@ const FormularioRegistro = () => {
     nombre_admin: '',
     apellido_admin: '',
     email_admin: '',
-    rut_admin: '',
     telefono_admin: '',
-    plan: 'profesional'
+    rut_admin: '',  // Solo para UI, no se envía al backend
+    plan: 'profesional' as 'basico' | 'profesional' | 'premium'
   });
 
   const [subdominioValido, setSubdominioValido] = useState<boolean | null>(null);
@@ -248,9 +248,10 @@ const FormularioRegistro = () => {
         throw new Error('Plan no válido');
       }
 
-      const { clientSecret, paymentIntentId } = await crearPaymentIntent({
-        amount: planSeleccionado.precio,
-        plan: formData.plan
+      // ⭐ CORRECCIÓN: Enviar email y nombre_empresa como espera el backend
+      const { clientSecret, customerId } = await crearPaymentIntent({
+        email: formData.email_admin,
+        nombre_empresa: formData.nombre_empresa
       });
 
       // 2. Confirmar pago con Stripe
@@ -277,11 +278,26 @@ const FormularioRegistro = () => {
         throw new Error('El pago no se completó correctamente');
       }
 
+      // ⭐ CORRECCIÓN: Obtener payment_method_id del paymentIntent
+      const paymentMethodId = typeof paymentIntent.payment_method === 'string' 
+        ? paymentIntent.payment_method 
+        : paymentIntent.payment_method?.id;
+
+      if (!paymentMethodId) {
+        throw new Error('No se pudo obtener el método de pago');
+      }
+
       // 3. Registrar empresa en el backend
       const resultado = await registrarEmpresa({
-        ...formData,
-        payment_intent_id: paymentIntentId
-      });
+        nombre_empresa: formData.nombre_empresa,
+        subdomain: formData.subdominio,
+        nombre_admin: formData.nombre_admin,
+        apellido_admin: formData.apellido_admin,
+        email_admin: formData.email_admin,
+        telefono_admin: formData.telefono_admin,
+        // ❌ NO enviar rut_admin, backend no lo espera
+        payment_method_id: paymentMethodId,  // ⭐ Enviar payment_method_id
+      } as RegistroEmpresaData);
 
       if (resultado.success) {
         toast.success('¡Empresa registrada exitosamente!');
@@ -426,17 +442,18 @@ const FormularioRegistro = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
+            {/* RUT opcional - no usado por backend */}
             <div>
-              <label className="block text-sm font-medium mb-1">RUT *</label>
+              <label className="block text-sm font-medium mb-1">RUT (Opcional)</label>
               <input
                 type="text"
                 name="rut_admin"
-                value={formData.rut_admin}
+                value={formData.rut_admin || ''}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="12.345.678-9"
-                required
               />
+              <p className="text-xs text-gray-500 mt-1">Este campo no se envía al servidor</p>
             </div>
 
             <div>

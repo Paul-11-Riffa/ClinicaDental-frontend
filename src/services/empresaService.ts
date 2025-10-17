@@ -3,22 +3,22 @@ import { Api } from '../lib/Api';
 export interface RegistroEmpresaData {
   // Datos de la empresa
   nombre_empresa: string;
-  subdominio: string;
-  telefono: string;
-  direccion: string;
+  subdomain: string;
+  telefono?: string;
+  direccion?: string;
   
   // Datos del administrador
   nombre_admin: string;
   apellido_admin: string;
   email_admin: string;
-  rut_admin: string;
-  telefono_admin: string;
+  telefono_admin?: string;
+  sexo_admin?: string;
   
-  // Plan seleccionado
-  plan: 'basico' | 'profesional' | 'premium';
+  // Plan seleccionado (no usado en backend actualmente)
+  plan?: 'basico' | 'profesional' | 'premium';
   
-  // Stripe Payment Intent ID
-  payment_intent_id?: string;
+  // Stripe Payment Method ID
+  payment_method_id?: string;
 }
 
 export interface RegistroEmpresaResponse {
@@ -30,13 +30,14 @@ export interface RegistroEmpresaResponse {
 }
 
 export interface PaymentIntentData {
-  amount: number;
-  plan: string;
+  email: string;
+  nombre_empresa: string;
 }
 
 export interface PaymentIntentResponse {
   clientSecret: string;
-  paymentIntentId: string;
+  price: number;
+  customerId: string;
 }
 
 /**
@@ -44,7 +45,8 @@ export interface PaymentIntentResponse {
  */
 export const crearPaymentIntent = async (data: PaymentIntentData): Promise<PaymentIntentResponse> => {
   try {
-    const response = await Api.post<PaymentIntentResponse>('/empresas/crear-payment-intent/', data);
+    // ⭐ CORRECCIÓN: Usar la ruta pública correcta
+    const response = await Api.post<PaymentIntentResponse>('/public/create-payment-intent/', data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Error al crear Payment Intent:', error);
@@ -57,7 +59,8 @@ export const crearPaymentIntent = async (data: PaymentIntentData): Promise<Payme
  */
 export const registrarEmpresa = async (data: RegistroEmpresaData): Promise<RegistroEmpresaResponse> => {
   try {
-    const response = await Api.post<RegistroEmpresaResponse>('/empresas/registrar/', data);
+    // ⭐ CORRECCIÓN: Usar la ruta pública correcta
+    const response = await Api.post<RegistroEmpresaResponse>('/public/registrar-empresa-pago/', data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Error al registrar empresa:', error);
