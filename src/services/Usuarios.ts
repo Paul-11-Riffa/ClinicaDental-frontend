@@ -36,12 +36,56 @@ export async function listarTiposUsuario(): Promise<TipoUsuario[]> {
   return Array.isArray(data) ? data : (data.results ?? []);
 }
 
+/**
+ * Cambia el rol de un usuario
+ * ✅ NUEVO: El backend SIEMPRE procesa el cambio exitosamente
+ * ✅ Preserva automáticamente el historial del usuario (consultas, planes, etc.)
+ * ✅ Ya NO falla por datos relacionados (foreign key constraints)
+ */
 export async function cambiarRolPorCodigo(
   codigo: number,
   idtipousuario: number
-): Promise<void> {
-  // SIN /api/
-  await Api.patch(`/usuarios/${codigo}/`, { idtipousuario });
+): Promise<Usuario> {
+  try {
+    console.log(`🔄 Cambiando rol del usuario #${codigo} a rol ${idtipousuario}...`);
+    
+    // SIN /api/ - El Api.ts ya agrega /api/
+    const { data } = await Api.patch<Usuario>(`/usuarios/${codigo}/`, { 
+      idtipousuario 
+    });
+    
+    console.log(`✅ Rol cambiado exitosamente. El historial del usuario se mantiene intacto:`, data);
+    return data;
+    
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const mensaje = error.response?.data?.detail || error.response?.data?.message;
+      
+      console.error('❌ Error al cambiar rol:', {
+        status,
+        mensaje,
+        codigo,
+        nuevoRol: idtipousuario
+      });
+      
+      // Errores específicos (ya NO hay error 500 por foreign key)
+      if (status === 403) {
+        throw new Error("No tienes permisos para cambiar roles. Solo administradores pueden realizar esta acción.");
+      }
+      if (status === 404) {
+        throw new Error(`Usuario con código ${codigo} no encontrado.`);
+      }
+      if (status === 400) {
+        throw new Error(mensaje || "Datos inválidos. Verifique el rol seleccionado.");
+      }
+      
+      // Error genérico (red, timeout, etc.)
+      throw new Error(mensaje || "Error al cambiar el rol del usuario. Por favor, intente nuevamente.");
+    }
+    
+    throw new Error("Error de conexión. Por favor, intente nuevamente.");
+  }
 }
 
 /* ===========================
@@ -117,12 +161,12 @@ function validarPayload(payload: EditarPerfilPayload): void {
 
 /** PATCH /api/usuario/me (envía solo el/los campos a modificar) */
 export async function editarMiPerfil(partial: EditarPerfilPayload): Promise<Perfil> {
+  // Preparamos los datos para enviar al backend (fuera del try para que esté disponible en catch)
+  const datosFiltrados: Record<string, any> = {};
+
   try {
     // Validamos el payload antes de enviarlo
     validarPayload(partial);
-
-    // Preparamos los datos para enviar al backend
-    const datosFiltrados: Record<string, any> = {};
 
     // Manejo de contraseña - incluir ambos campos si se está actualizando la contraseña
     if (partial.password) {

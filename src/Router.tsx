@@ -20,6 +20,7 @@ import ConsultarHistoriaClinicaPaciente from "./pages/ConsultarHistoriaClinicaPa
 import PolticasNoShow from "./pages/CrearPoliticaNoShow";
 import Reportes from "./pages/Reportes";
 import LandingCompra from "./pages/LandingCompra";
+import CrearUsuario from "./pages/CrearUsuario";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -104,6 +105,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <GestionRoles/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/crear-usuario",
+                element: (
+                    <ProtectedRoute>
+                        <CrearUsuario/>
                     </ProtectedRoute>
                 ),
             },

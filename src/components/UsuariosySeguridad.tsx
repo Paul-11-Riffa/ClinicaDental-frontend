@@ -116,6 +116,23 @@ export default function UsuariosySeguridad() {
                 <span className="ml-auto text-cyan-700">→</span>
               </Link>
 
+              {/* Crear nuevo usuario */}
+              <Link
+                to="/crear-usuario"
+                className="flex items-center gap-4 rounded-xl border border-emerald-100 bg-white/80 p-4 hover:shadow-md transition"
+              >
+                <div className="w-11 h-11 rounded-xl bg-emerald-100 grid place-items-center shrink-0">
+                  <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900">Crear usuario</p>
+                  <p className="text-xs text-gray-500">Agregar personal o pacientes al sistema</p>
+                </div>
+                <span className="ml-auto text-emerald-700">→</span>
+              </Link>
+
               {/* Registrar Historia Clínica */}
               <Link
                 to="/historias/registrar"
