@@ -21,6 +21,7 @@ import PolticasNoShow from "./pages/CrearPoliticaNoShow";
 import Reportes from "./pages/Reportes";
 import LandingCompra from "./pages/LandingCompra";
 import CrearUsuario from "./pages/CrearUsuario";
+import CatalogoServicios from "./pages/CatalogoServicios";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -186,6 +187,12 @@ export const router = createBrowserRouter([
                         <Reportes/>
                     </ProtectedRoute>
                 ),
+            },
+
+            // Catálogo de Servicios (PÚBLICA - acceso sin autenticación)
+            {
+                path: "/catalogo-servicios",
+                element: <CatalogoServicios/>,
             },
 
             // 404
