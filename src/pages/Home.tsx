@@ -17,6 +17,12 @@ export default function Home() {
 
             <div className="flex space-x-4">
               <Link
+                to="/catalogo-servicios"
+                className="px-6 py-2 text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              >
+                Servicios
+              </Link>
+              <Link
                 to="/login"
                 className="px-6 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-300"
               >
@@ -135,9 +141,15 @@ export default function Home() {
               <h3 className="text-3xl font-bold text-gray-900 mb-4">
                 Nuestros Servicios
               </h3>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-600 mb-6">
                 Tratamientos completos para toda la familia
               </p>
+              <Link
+                to="/catalogo-servicios"
+                className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 font-semibold"
+              >
+                Ver Catálogo Completo de Servicios
+              </Link>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">

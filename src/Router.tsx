@@ -189,14 +189,10 @@ export const router = createBrowserRouter([
                 ),
             },
 
-            // Catálogo de Servicios (protegida)
+            // Catálogo de Servicios (PÚBLICA - acceso sin autenticación)
             {
                 path: "/catalogo-servicios",
-                element: (
-                    <ProtectedRoute>
-                        <CatalogoServicios/>
-                    </ProtectedRoute>
-                ),
+                element: <CatalogoServicios/>,
             },
 
             // 404

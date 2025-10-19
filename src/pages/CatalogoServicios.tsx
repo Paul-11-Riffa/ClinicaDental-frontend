@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { obtenerServicios } from "../services/serviciosService";
+import { obtenerServicios, obtenerServicio } from "../services/serviciosService";
 import type {
   ServicioListado,
+  Servicio,
   FiltrosServicios,
 } from "../interfaces/Servicio";
 import toast from "react-hot-toast";
@@ -12,6 +13,11 @@ export default function CatalogoServicios() {
   const [totalResultados, setTotalResultados] = useState(0);
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
+  
+  // Modal de detalle
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [servicioDetalle, setServicioDetalle] = useState<Servicio | null>(null);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
 
   // Estados para los filtros
   const [busqueda, setBusqueda] = useState("");
@@ -78,6 +84,28 @@ export default function CatalogoServicios() {
       setPaginaActual(nuevaPagina);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  // Función para abrir modal con detalles del servicio
+  const verDetalleServicio = async (id: number) => {
+    setModalAbierto(true);
+    setLoadingDetalle(true);
+    try {
+      const detalle = await obtenerServicio(id);
+      setServicioDetalle(detalle);
+    } catch (error) {
+      console.error("Error cargando detalle:", error);
+      toast.error("No se pudo cargar el detalle del servicio");
+      setModalAbierto(false);
+    } finally {
+      setLoadingDetalle(false);
+    }
+  };
+
+  // Cerrar modal
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setServicioDetalle(null);
   };
 
   return (
@@ -299,7 +327,10 @@ export default function CatalogoServicios() {
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                    <button className="w-full px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm">
+                    <button 
+                      onClick={() => verDetalleServicio(servicio.id)}
+                      className="w-full px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
+                    >
                       Ver Detalles
                     </button>
                   </div>
@@ -367,6 +398,140 @@ export default function CatalogoServicios() {
             </div>
           )}
         </div>
+
+        {/* Modal de Detalle */}
+        {modalAbierto && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header del modal */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Detalle del Servicio
+                </h2>
+                <button
+                  onClick={cerrarModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Contenido del modal */}
+              <div className="p-6">
+                {loadingDetalle ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : servicioDetalle ? (
+                  <div className="space-y-6">
+                    {/* Nombre y estado */}
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-2xl font-bold text-gray-800">
+                        {servicioDetalle.nombre}
+                      </h3>
+                      {servicioDetalle.activo && (
+                        <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full font-medium">
+                          Activo
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Descripción */}
+                    {servicioDetalle.descripcion && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                          Descripción
+                        </h4>
+                        <p className="text-gray-600 leading-relaxed">
+                          {servicioDetalle.descripcion}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Información de precio y duración */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <p className="text-sm text-blue-600 font-medium mb-1">
+                          Precio del Servicio
+                        </p>
+                        <p className="text-3xl font-bold text-blue-700">
+                          ${servicioDetalle.precio_vigente}
+                        </p>
+                        {servicioDetalle.costobase !== servicioDetalle.precio_vigente && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Precio base: ${servicioDetalle.costobase}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="bg-purple-50 rounded-lg p-4">
+                        <p className="text-sm text-purple-600 font-medium mb-1">
+                          Duración Estimada
+                        </p>
+                        <p className="text-3xl font-bold text-purple-700">
+                          {servicioDetalle.duracion}
+                        </p>
+                        <p className="text-sm text-purple-600">minutos</p>
+                      </div>
+                    </div>
+
+                    {/* Fechas de registro */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Fecha de creación:</span>
+                          <p className="text-gray-800 font-medium">
+                            {new Date(servicioDetalle.fecha_creacion).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Última modificación:</span>
+                          <p className="text-gray-800 font-medium">
+                            {new Date(servicioDetalle.fecha_modificacion).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botón de acción */}
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        onClick={cerrarModal}
+                        className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-600 py-8">
+                    No se pudo cargar el detalle del servicio
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,7 +9,19 @@ import type {
 
 /**
  * Servicio para gestionar el catálogo de servicios dentales
+ * 
  * Base URL: /clinic/servicios/
+ * URL completa: {baseURL}/clinic/servicios/
+ * 
+ * Ejemplo en desarrollo: http://localhost:8000/api/clinic/servicios/
+ * Ejemplo en producción: https://norte.notificct.dpdns.org/api/clinic/servicios/
+ * 
+ * ✅ Acceso público (GET) - No requiere autenticación
+ * ✅ Operaciones de admin (POST/PUT/DELETE) - Requiere autenticación
+ * 
+ * NOTA: Backend soporta ambas rutas por compatibilidad:
+ * - /clinic/servicios/ (ruta original)
+ * - /api/clinic/servicios/ (alias - recomendado por consistencia)
  */
 
 /**
