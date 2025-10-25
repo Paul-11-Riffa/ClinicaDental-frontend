@@ -106,8 +106,8 @@ const PacienteDashboard = () => {
       try {
         setLoadingCita(true);
 
-        // Obtener consultas del paciente
-        const response = await Api.get('/consultas/mis-citas/');
+        // Obtener consultas del paciente - usa el endpoint correcto
+        const response = await Api.get('/consultas/');
         const citas = response.data?.results || response.data || [];
 
         // Encontrar la próxima cita (fecha futura más cercana)

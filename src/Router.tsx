@@ -22,6 +22,9 @@ import Reportes from "./pages/Reportes";
 import LandingCompra from "./pages/LandingCompra";
 import CrearUsuario from "./pages/CrearUsuario";
 import CatalogoServicios from "./pages/CatalogoServicios";
+import ListarPlanesTratamiento from "./pages/ListarPlanesTratamiento";
+import CrearPlanTratamiento from "./pages/CrearPlanTratamiento";
+import DetallePlanTratamiento from "./pages/DetallePlanTratamiento";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -193,6 +196,32 @@ export const router = createBrowserRouter([
             {
                 path: "/catalogo-servicios",
                 element: <CatalogoServicios/>,
+            },
+
+            // Planes de Tratamiento (protegidas)
+            {
+                path: "/planes-tratamiento",
+                element: (
+                    <ProtectedRoute>
+                        <ListarPlanesTratamiento/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/planes-tratamiento/crear",
+                element: (
+                    <ProtectedRoute>
+                        <CrearPlanTratamiento/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/planes-tratamiento/:id",
+                element: (
+                    <ProtectedRoute>
+                        <DetallePlanTratamiento/>
+                    </ProtectedRoute>
+                ),
             },
 
             // 404
