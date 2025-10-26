@@ -11,6 +11,7 @@ import type {
   RespuestaItemAction,
   RespuestaTotales,
   FiltrosPlanesTratamiento,
+  ValidacionAprobacion,
 } from "../interfaces/PlanTratamiento";
 
 /**
@@ -146,6 +147,26 @@ export async function aprobarPlanTratamiento(
     return response.data;
   } catch (error) {
     console.error(`Error al aprobar plan de tratamiento ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Valida si un plan de tratamiento puede ser aprobado
+ * Verifica estado, items activos y permisos de usuario
+ * @param id - ID del plan a validar
+ * @returns Promise con la validación detallada
+ */
+export async function validarAprobacionPlan(
+  id: number
+): Promise<ValidacionAprobacion> {
+  try {
+    const response = await Api.get<ValidacionAprobacion>(
+      `/planes-tratamiento/${id}/validar-aprobacion/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error al validar aprobación del plan ${id}:`, error);
     throw error;
   }
 }

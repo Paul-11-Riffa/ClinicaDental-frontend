@@ -7,6 +7,7 @@ import { toast, Toaster } from "react-hot-toast";
 import {
   obtenerPlanTratamiento,
   aprobarPlanTratamiento,
+  validarAprobacionPlan,
   activarItemPlan,
   cancelarItemPlan,
   completarItemPlan,
@@ -15,13 +16,18 @@ import {
   getEstadoPlanColor,
   getEstadoItemColor,
 } from "../services/planesTratamientoService";
-import type { PlanTratamientoDetalle, ItemPlanTratamiento } from "../interfaces/PlanTratamiento";
+import type { 
+  PlanTratamientoDetalle, 
+  ItemPlanTratamiento,
+  ValidacionAprobacion 
+} from "../interfaces/PlanTratamiento";
 
 export default function DetallePlanTratamiento() {
   const { isAuth, user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [plan, setPlan] = useState<PlanTratamientoDetalle | null>(null);
+  const [validacion, setValidacion] = useState<ValidacionAprobacion | null>(null);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(false);
 
@@ -36,6 +42,32 @@ export default function DetallePlanTratamiento() {
     try {
       const planData = await obtenerPlanTratamiento(parseInt(id!));
       setPlan(planData);
+      
+      // Validar si puede aprobar el plan
+      if (planData.es_borrador) {
+        try {
+          const validacionData = await validarAprobacionPlan(parseInt(id!));
+          setValidacion(validacionData);
+          
+          // 🔍 Logging de validación y debug info
+          console.log("📋 Validación de aprobación cargada:");
+          console.log("  - puede_aprobar:", validacionData.puede_aprobar);
+          console.log("  - motivos:", validacionData.motivos);
+          console.log("  - usuario_puede_aprobar:", validacionData.detalles.usuario_puede_aprobar);
+          
+          if (validacionData.detalles?.debug) {
+            console.log("  - Debug info del backend:");
+            console.log("    · usuario_codigo:", validacionData.detalles.debug.usuario_codigo);
+            console.log("    · usuario_tipo:", validacionData.detalles.debug.usuario_tipo_rol);
+            console.log("    · plan_odontologo_id:", validacionData.detalles.debug.plan_odontologo_id);
+            console.log("    · es_odontologo_del_plan:", validacionData.detalles.debug.es_odontologo_del_plan);
+            console.log("    · es_admin:", validacionData.detalles.debug.es_admin);
+          }
+        } catch (error) {
+          console.warn("Error al validar aprobación:", error);
+          setValidacion(null);
+        }
+      }
     } catch (error: any) {
       console.error("Error al cargar plan:", error);
       toast.error(
@@ -49,6 +81,27 @@ export default function DetallePlanTratamiento() {
   };
 
   const handleAprobarPlan = async () => {
+    // ✅ Backend corregido - Usar validación del backend
+    // Ver: SOLUCION_VALIDACION_APROBACION.md y ANALISIS_FIX_BACKEND_VALIDACION.md
+    
+    if (validacion && !validacion.puede_aprobar) {
+      const motivos = validacion.motivos.join('\n• ');
+      
+      // Mostrar información de debug en consola para troubleshooting
+      if (validacion.detalles?.debug) {
+        console.warn("⚠️ Aprobación denegada - Debug info:");
+        console.warn("  Usuario código:", validacion.detalles.debug.usuario_codigo);
+        console.warn("  Odontólogo del plan:", validacion.detalles.debug.plan_odontologo_id);
+        console.warn("  Es odontólogo asignado:", validacion.detalles.debug.es_odontologo_del_plan);
+        console.warn("  Es admin:", validacion.detalles.debug.es_admin);
+      }
+      
+      toast.error(`No se puede aprobar el plan:\n\n• ${motivos}`, {
+        duration: 6000,
+      });
+      return;
+    }
+
     if (
       !window.confirm(
         "¿Está seguro de aprobar este plan? Una vez aprobado no podrá editarse."
@@ -59,15 +112,78 @@ export default function DetallePlanTratamiento() {
 
     setProcesando(true);
     try {
-      await aprobarPlanTratamiento(parseInt(id!));
-      toast.success("Plan de tratamiento aprobado exitosamente");
+      // Capturar respuesta completa del backend
+      console.log("🔄 Iniciando aprobación del plan:", id);
+      console.log("📤 Request:", {
+        url: `/planes-tratamiento/${id}/aprobar/`,
+        method: 'POST',
+        payload: { confirmar: true }
+      });
+      
+      const response = await aprobarPlanTratamiento(parseInt(id!));
+      
+      console.log("✅ Plan aprobado exitosamente");
+      console.log("📥 Response:", response);
+      
+      // Mensaje de éxito según documentación del backend
+      toast.success(
+        response.mensaje || "Plan de tratamiento aprobado exitosamente",
+        { duration: 4000 }
+      );
+      
+      // Recargar plan para ver cambios
       cargarPlan();
     } catch (error: any) {
-      console.error("Error al aprobar plan:", error);
-      toast.error(
-        error?.response?.data?.detail ||
-          "Error al aprobar el plan. Verifique que tenga al menos un ítem activo."
-      );
+      // Logging exhaustivo del error según documentación
+      console.error("❌ Error al aprobar plan - Detalles completos:");
+      console.error("Error object:", error);
+      console.error("Response status:", error.response?.status);
+      console.error("Response headers:", error.response?.headers);
+      console.error("Response data:", error.response?.data);
+      
+      // Mostrar error real del backend según INSTRUCCIONES_TESTING_FRONTEND.md
+      let mensajeError = "Error al aprobar el plan de tratamiento";
+      let detalleError = "";
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Formato esperado según backend:
+        // { error: "...", detalle: "..." }
+        if (errorData.error) {
+          mensajeError = errorData.error;
+          if (errorData.detalle) {
+            detalleError = errorData.detalle;
+          }
+        } else if (errorData.detail) {
+          mensajeError = errorData.detail;
+        } else if (errorData.non_field_errors) {
+          mensajeError = Array.isArray(errorData.non_field_errors) 
+            ? errorData.non_field_errors[0] 
+            : errorData.non_field_errors;
+        } else if (typeof errorData === 'string') {
+          mensajeError = errorData;
+        }
+      }
+      
+      // Mostrar error con detalle si existe
+      if (detalleError) {
+        toast.error(`${mensajeError}\n\n${detalleError}`, { duration: 6000 });
+      } else {
+        toast.error(mensajeError, { duration: 5000 });
+      }
+      
+      // Logging para debugging (según SOLUCION_BUG_APROBAR_PLAN.md)
+      if (error.response?.status === 403) {
+        console.warn("⚠️ Error 403: Permisos insuficientes");
+        console.warn("Verifica que seas el odontólogo asignado o administrador");
+      } else if (error.response?.status === 400) {
+        console.warn("⚠️ Error 400: Validación de negocio");
+        console.warn("Posibles causas: plan no en borrador, sin ítems activos, etc.");
+      } else if (error.response?.status === 500) {
+        console.error("🔥 Error 500: Error interno del servidor");
+        console.error("Enviar logs completos al equipo de backend");
+      }
     } finally {
       setProcesando(false);
     }
@@ -170,10 +286,46 @@ export default function DetallePlanTratamiento() {
     return <Navigate to="/planes-tratamiento" replace />;
   }
 
+  // 🔍 DEBUG: Información de permisos de aprobación
+  console.log("🔐 VALIDACIÓN DE PERMISOS PARA APROBAR:");
+  console.log("Usuario logueado:", {
+    codigo: user?.codigo,
+    nombre: user?.nombre,
+    idtipousuario: user?.idtipousuario,
+    tipo: user?.idtipousuario === 1 ? "Admin" : user?.idtipousuario === 3 ? "Odontólogo" : "Otro"
+  });
+  console.log("Plan de tratamiento:", {
+    id: plan.id,
+    estado_plan: plan.estado_plan,
+    es_borrador: plan.es_borrador,
+    odontologo_asignado: {
+      id: plan.odontologo.id,
+      nombre: plan.odontologo.nombre
+    }
+  });
+  console.log("Validación:", {
+    es_admin: user?.idtipousuario === 1,
+    es_odontologo: user?.idtipousuario === 3,
+    es_odontologo_asignado: user?.codigo === plan.odontologo.id,
+    comparacion: `${user?.codigo} === ${plan.odontologo.id} → ${user?.codigo === plan.odontologo.id}`
+  });
+
   const puedeAprobar =
     plan.es_borrador &&
     (user?.idtipousuario === 1 ||
       (user?.idtipousuario === 3 && user?.codigo === plan.odontologo.id));
+
+  console.log("✅ Resultado final - puedeAprobar:", puedeAprobar);
+  
+  // 🔍 DEBUG: Validación del backend
+  if (validacion) {
+    console.log("📋 VALIDACIÓN DEL BACKEND:");
+    console.log("- puede_aprobar:", validacion.puede_aprobar);
+    console.log("- motivos:", validacion.motivos);
+    console.log("- detalles completos:", validacion.detalles);
+  } else {
+    console.log("⚠️ No hay validación del backend cargada");
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-white">
@@ -215,26 +367,37 @@ export default function DetallePlanTratamiento() {
           {/* Acciones del Plan */}
           <div className="flex gap-2">
             {puedeAprobar && (
-              <button
-                onClick={handleAprobarPlan}
-                disabled={procesando}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="relative">
+                <button
+                  onClick={handleAprobarPlan}
+                  disabled={procesando || (validacion && !validacion.puede_aprobar)}
+                  className={`px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+                    validacion && !validacion.puede_aprobar
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                  title={
+                    validacion && !validacion.puede_aprobar
+                      ? validacion.motivos.join('\n')
+                      : 'Aprobar plan de tratamiento'
+                  }
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Aprobar Plan
-              </button>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {validacion && !validacion.puede_aprobar ? 'No puede aprobar' : 'Aprobar Plan'}
+                </button>
+              </div>
             )}
             {plan.puede_editarse &&
               (user?.idtipousuario === 1 || user?.idtipousuario === 3) && (
@@ -545,7 +708,95 @@ export default function DetallePlanTratamiento() {
         </div>
 
         {/* Alertas */}
-        {plan.es_borrador && (
+        {validacion && !validacion.puede_aprobar && plan.es_borrador && (
+          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-5 h-5 text-red-600 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div className="flex-1">
+                <h4 className="font-medium text-red-800">
+                  No se puede aprobar este plan
+                </h4>
+                <ul className="text-sm text-red-700 mt-1 list-disc list-inside">
+                  {validacion.motivos.map((motivo, index) => (
+                    <li key={index}>{motivo}</li>
+                  ))}
+                </ul>
+                <div className="mt-3 p-3 bg-red-100 rounded-lg">
+                  <p className="text-sm text-red-800 font-medium mb-2">
+                    📊 Información de Permisos:
+                  </p>
+                  <div className="text-xs text-red-700 space-y-1">
+                    <p><strong>Tu usuario:</strong> {user?.nombre || 'N/A'} (Tipo: {
+                      user?.idtipousuario === 1 ? 'Admin' : 
+                      user?.idtipousuario === 3 ? 'Odontólogo' : 
+                      user?.idtipousuario === 2 ? 'Paciente' : 
+                      'Otro'
+                    })</p>
+                    <p><strong>Odontólogo asignado al plan:</strong> {plan.odontologo.nombre} (ID: {plan.odontologo.id})</p>
+                    <p><strong>Tu código de usuario:</strong> {user?.codigo || 'N/A'}</p>
+                    {user?.idtipousuario === 3 && user?.codigo !== plan.odontologo.id && (
+                      <p className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                        ⚠️ <strong>Motivo:</strong> Solo el odontólogo asignado al plan puede aprobarlo. 
+                        Este plan fue creado por/para: <strong>{plan.odontologo.nombre}</strong>
+                      </p>
+                    )}
+                    {user?.idtipousuario !== 1 && user?.idtipousuario !== 3 && (
+                      <p className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                        ⚠️ <strong>Motivo:</strong> Solo usuarios con rol de Administrador u Odontólogo pueden aprobar planes.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-red-600 mt-3">
+                  <strong>Estadísticas del plan:</strong> {validacion.detalles.items_activos} ítems activos, {validacion.detalles.items_pendientes} pendientes, {validacion.detalles.items_cancelados} cancelados
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {validacion && validacion.puede_aprobar && plan.es_borrador && (
+          <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-5 h-5 text-green-600 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <h4 className="font-medium text-green-800">
+                  Plan listo para aprobar
+                </h4>
+                <p className="text-sm text-green-700 mt-1">
+                  Este plan cumple todos los requisitos y puede ser aprobado. 
+                  Tiene {validacion.detalles.items_activos + validacion.detalles.items_pendientes} ítems activos/pendientes de un total de {validacion.detalles.items_totales}.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {plan.es_borrador && !validacion && (
           <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <svg

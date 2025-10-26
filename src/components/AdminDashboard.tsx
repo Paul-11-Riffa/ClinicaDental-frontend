@@ -525,6 +525,38 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
+          {/* Presupuestos Digitales */}
+          <Link
+            to="/presupuestos-digitales"
+            className="group bg-white/80 border border-emerald-100 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 grid place-items-center shrink-0">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                  Presupuestos Digitales
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Generar y gestionar presupuestos
+                </p>
+              </div>
+            </div>
+          </Link>
+
           {/* Bitácora de Auditoría (solo admins) */}
           {user?.idtipousuario === 1 && (
             <button

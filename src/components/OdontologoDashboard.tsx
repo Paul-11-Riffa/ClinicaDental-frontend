@@ -204,6 +204,19 @@ export default function OdontologoDashboard() {
                   <p className="text-gray-600">Crear y gestionar planes</p>
                 </div>
               </Link>
+
+              <Link
+                to="/presupuestos-digitales"
+                className="flex items-center p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
+              >
+                <svg className="w-8 h-8 text-emerald-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Presupuestos Digitales</h3>
+                  <p className="text-gray-600">Generar presupuestos</p>
+                </div>
+              </Link>
             </div>
           </div>
 

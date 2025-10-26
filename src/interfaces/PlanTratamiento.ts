@@ -10,7 +10,7 @@ export interface PlanTratamiento {
   paciente_nombre: string;
   odontologo_nombre: string;
   estado_plan: 'Borrador' | 'Aprobado' | 'Cancelado';
-  estado_aceptacion: 'Pendiente' | 'Aceptado' | 'Rechazado';
+  estado_aceptacion: 'Pendiente' | 'Aceptado' | 'Rechazado' | 'Caducado' | 'Parcial';
   montototal: string;
   subtotal_calculado: string;
   descuento: string;
@@ -105,15 +105,11 @@ export interface ActualizarPlanTratamientoDTO {
 }
 
 export interface ActualizarItemPlanDTO {
-  codigo_item: number; // AGREGADO: requerido para identificar el item
-  cantidad?: number;
-  precio_unitario?: string; // Cambiado de costofinal
-  descuento_porcentaje?: string; // AGREGADO
-  estado_item?: 'pendiente' | 'activo' | 'cancelado' | 'completado'; // AGREGADO
-  fecha_objetivo?: string;
-  tiempo_estimado?: number;
-  notas_item?: string;
-  orden?: number;
+  costofinal?: number;         // Costo final del ítem
+  fecha_objetivo?: string;     // Fecha estimada (YYYY-MM-DD)
+  tiempo_estimado?: number;    // Tiempo en minutos
+  notas_item?: string;         // Notas del procedimiento
+  orden?: number;              // Orden de ejecución
 }
 
 // ========================================
@@ -167,6 +163,31 @@ export interface RespuestaTotales {
   };
 }
 
+export interface ValidacionAprobacion {
+  puede_aprobar: boolean;
+  motivos: string[];
+  detalles: {
+    es_borrador: boolean;
+    items_totales: number;
+    items_activos: number;
+    items_pendientes: number;
+    items_cancelados: number;
+    items_completados: number;
+    es_editable: boolean;
+    estado_plan: string;
+    usuario_puede_aprobar: boolean;
+    // ✅ NUEVO: Información de debugging agregada por el backend
+    debug?: {
+      usuario_codigo: number;
+      usuario_tipo_id: number;
+      usuario_tipo_rol: string;
+      plan_odontologo_id: number | null;
+      es_odontologo_del_plan: boolean;
+      es_admin: boolean;
+    };
+  };
+}
+
 // ========================================
 // Filtros para Listado
 // ========================================
@@ -174,7 +195,7 @@ export interface RespuestaTotales {
 export interface FiltrosPlanesTratamiento {
   search?: string;
   estado_plan?: 'Borrador' | 'Aprobado' | 'Cancelado' | '';
-  estado_aceptacion?: 'Pendiente' | 'Aceptado' | 'Rechazado' | '';
+  estado_aceptacion?: 'Pendiente' | 'Aceptado' | 'Rechazado' | 'Caducado' | 'Parcial' | '';
   paciente?: number;
   odontologo?: number;
   fecha_desde?: string;

@@ -25,6 +25,11 @@ import CatalogoServicios from "./pages/CatalogoServicios";
 import ListarPlanesTratamiento from "./pages/ListarPlanesTratamiento";
 import CrearPlanTratamiento from "./pages/CrearPlanTratamiento";
 import DetallePlanTratamiento from "./pages/DetallePlanTratamiento";
+import EditarPlanTratamiento from "./pages/EditarPlanTratamiento";
+import AgregarItemPlan from "./pages/AgregarItemPlan";
+import ListarPresupuestosDigitales from "./pages/ListarPresupuestosDigitales";
+import CrearPresupuestoDigital from "./pages/CrearPresupuestoDigital";
+import DetallePresupuestoDigital from "./pages/DetallePresupuestoDigital";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -220,6 +225,48 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <DetallePlanTratamiento/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/planes-tratamiento/:id/editar",
+                element: (
+                    <ProtectedRoute>
+                        <EditarPlanTratamiento/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/planes-tratamiento/:id/agregar-item",
+                element: (
+                    <ProtectedRoute>
+                        <AgregarItemPlan/>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Presupuestos Digitales (protegidas)
+            {
+                path: "/presupuestos-digitales",
+                element: (
+                    <ProtectedRoute>
+                        <ListarPresupuestosDigitales/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/presupuestos-digitales/crear",
+                element: (
+                    <ProtectedRoute>
+                        <CrearPresupuestoDigital/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/presupuestos-digitales/:id",
+                element: (
+                    <ProtectedRoute>
+                        <DetallePresupuestoDigital/>
                     </ProtectedRoute>
                 ),
             },
