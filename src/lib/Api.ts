@@ -122,20 +122,43 @@ Api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // Interceptor de respuesta para debugging
 Api.interceptors.response.use(
   (response) => {
-    console.log("✅ Response interceptor - Success:");
-    console.log("- URL:", response.config.url);
-    console.log("- Status:", response.status);
-    console.log("- Headers:", response.headers);
-    console.log("- Data type:", typeof response.data);
-    console.log("- Data preview:", response.data);
+    // Solo log en desarrollo para no contaminar producción
+    if (import.meta.env.DEV) {
+      console.log("✅ API Success:");
+      console.log("- URL:", response.config.url);
+      console.log("- Method:", response.config.method?.toUpperCase());
+      console.log("- Status:", response.status);
+      console.log("- Data:", response.data);
+    }
     return response;
   },
   (error) => {
-    console.error("❌ Response interceptor - Error:");
+    // Logging exhaustivo de errores para debugging
+    console.error("❌ API Error:");
     console.error("- URL:", error.config?.url);
+    console.error("- Method:", error.config?.method?.toUpperCase());
     console.error("- Status:", error.response?.status);
-    console.error("- Response data:", error.response?.data);
-    console.error("- Error message:", error.message);
+    console.error("- Status Text:", error.response?.statusText);
+    console.error("- Response Headers:", error.response?.headers);
+    console.error("- Response Data:", error.response?.data);
+    console.error("- Error Message:", error.message);
+    
+    // Ayuda para diagnosticar errores comunes
+    if (error.response?.status === 400) {
+      console.warn("⚠️ Error 400 (Bad Request) - Verifica:");
+      console.warn("  - Validaciones del backend en response.data");
+      console.warn("  - Formato del payload enviado");
+      console.warn("  - Campos requeridos");
+    } else if (error.response?.status === 403) {
+      console.warn("⚠️ Error 403 (Forbidden) - Verifica:");
+      console.warn("  - Permisos del usuario");
+      console.warn("  - Token de autenticación");
+    } else if (error.response?.status === 404) {
+      console.warn("⚠️ Error 404 (Not Found) - Verifica:");
+      console.warn("  - La URL del endpoint");
+      console.warn("  - El ID del recurso existe");
+    }
+    
     return Promise.reject(error);
   }
 );
