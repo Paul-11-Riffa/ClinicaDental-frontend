@@ -11,6 +11,13 @@ import type {
   RespuestaDesglose,
   PlanDisponible,
   FiltrosPresupuestosDigitales,
+  // Imports para aceptación de presupuestos (SP3-T003)
+  FiltrosMisPresupuestos,
+  RespuestaPuedeAceptar,
+  AceptarPresupuestoDTO,
+  RespuestaAceptarPresupuesto,
+  HistorialAceptaciones,
+  FirmaDigital,
 } from "../interfaces/PresupuestoDigital";
 
 /**
@@ -236,11 +243,36 @@ export async function obtenerPlanesDisponibles(): Promise<PlanDisponible[]> {
 
 /**
  * Formatea el monto en formato moneda boliviana
- * @param monto - Monto a formatear
- * @returns String formateado (ej: "Bs 1.500,00")
+ * @param monto - Monto a formatear (puede ser string, number, null o undefined)
+ * @returns String formateado (ej: "Bs 1.500,00") o "Bs 0,00" si el valor es inválido
  */
-export function formatearMonto(monto: string | number): string {
-  const numero = typeof monto === 'string' ? parseFloat(monto) : monto;
+export function formatearMonto(monto: string | number | null | undefined): string {
+  // Validar que el monto no sea null, undefined o vacío
+  if (monto === null || monto === undefined || monto === '' || monto === 'null' || monto === 'undefined') {
+    return new Intl.NumberFormat('es-BO', {
+      style: 'currency',
+      currency: 'BOB',
+    }).format(0);
+  }
+
+  // Convertir a número
+  let numero: number;
+  if (typeof monto === 'string') {
+    numero = parseFloat(monto);
+    // Verificar que parseFloat haya retornado un número válido
+    if (isNaN(numero)) {
+      console.warn(`⚠️ formatearMonto: Valor inválido recibido: "${monto}". Usando 0.`);
+      numero = 0;
+    }
+  } else {
+    numero = monto;
+    // Verificar que sea un número válido
+    if (isNaN(numero) || !isFinite(numero)) {
+      console.warn(`⚠️ formatearMonto: Número inválido recibido: ${monto}. Usando 0.`);
+      numero = 0;
+    }
+  }
+
   return new Intl.NumberFormat('es-BO', {
     style: 'currency',
     currency: 'BOB',
@@ -284,4 +316,219 @@ export function estaVigente(fechaVigencia: string, estado: string): boolean {
   if (estado !== 'Emitido') return false;
   const diasRestantes = calcularDiasRestantes(fechaVigencia);
   return diasRestantes >= 0;
+}
+
+// ========================================
+// Aceptación de Presupuestos (SP3-T003)
+// ========================================
+
+/**
+ * Obtiene los presupuestos del paciente autenticado
+ * Endpoint exclusivo para pacientes que retorna solo sus presupuestos
+ * @param filtros - Filtros opcionales (estado, vigencia, plan)
+ * @returns Promise con presupuestos paginados del paciente
+ */
+export async function obtenerMisPresupuestos(
+  filtros?: FiltrosMisPresupuestos
+): Promise<RespuestaPaginadaPresupuesto> {
+  try {
+    const response = await Api.get<RespuestaPaginadaPresupuesto>(
+      "/presupuestos-digitales/mis-presupuestos/",
+      { params: filtros }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener mis presupuestos:", error);
+    throw error;
+  }
+}
+
+/**
+ * Verifica si el paciente puede aceptar un presupuesto
+ * Valida: permisos, vigencia, estado, items, etc.
+ * @param id - ID del presupuesto a verificar
+ * @returns Promise con validaciones detalladas y razones
+ */
+export async function puedeAceptarPresupuesto(
+  id: number
+): Promise<RespuestaPuedeAceptar> {
+  try {
+    const response = await Api.get<RespuestaPuedeAceptar>(
+      `/presupuestos-digitales/${id}/puede-aceptar/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error al verificar si puede aceptar presupuesto ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Acepta un presupuesto (total o parcialmente) con firma digital
+ * 
+ * ⚠️ IMPORTANTE: Este endpoint tiene rate limiting de 10 aceptaciones/hora
+ * 
+ * Errores posibles:
+ * - 400: Validación fallida (presupuesto caducado, ya aceptado, etc.)
+ * - 403: Sin permisos (no es el paciente del presupuesto)
+ * - 429: Rate limit excedido (más de 10 aceptaciones en 1 hora)
+ * 
+ * @param id - ID del presupuesto a aceptar
+ * @param datos - Tipo aceptación, firma digital, items seleccionados, notas
+ * @returns Promise con detalles de la aceptación y URL del comprobante PDF
+ */
+export async function aceptarPresupuesto(
+  id: number,
+  datos: AceptarPresupuestoDTO
+): Promise<RespuestaAceptarPresupuesto> {
+  try {
+    const response = await Api.post<RespuestaAceptarPresupuesto>(
+      `/presupuestos-digitales/${id}/aceptar/`,
+      datos
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error(`Error al aceptar presupuesto ${id}:`, error);
+    
+    // Manejo especial de error de rate limiting
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'];
+      const mensaje = retryAfter 
+        ? `Límite de aceptaciones alcanzado. Intenta nuevamente en ${retryAfter} segundos.`
+        : 'Has alcanzado el límite de 10 aceptaciones por hora. Por favor, intenta más tarde.';
+      throw new Error(mensaje);
+    }
+    
+    throw error;
+  }
+}
+
+/**
+ * Obtiene el historial completo de aceptaciones de un presupuesto
+ * Útil para ver aceptaciones parciales previas
+ * @param id - ID del presupuesto
+ * @returns Promise con array de aceptaciones ordenadas por fecha (más reciente primero)
+ */
+export async function obtenerHistorialAceptaciones(
+  id: number
+): Promise<HistorialAceptaciones> {
+  try {
+    const response = await Api.get<HistorialAceptaciones>(
+      `/presupuestos-digitales/${id}/historial-aceptaciones/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error al obtener historial de aceptaciones del presupuesto ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Descarga el comprobante PDF de una aceptación específica
+ * El PDF incluye código QR para verificación
+ * 
+ * Uso:
+ * ```typescript
+ * const blob = await descargarComprobanteAceptacion(42);
+ * const url = window.URL.createObjectURL(blob);
+ * const link = document.createElement('a');
+ * link.href = url;
+ * link.download = `comprobante_${codigoPresupuesto}.pdf`;
+ * link.click();
+ * window.URL.revokeObjectURL(url);
+ * ```
+ * 
+ * @param aceptacionId - ID de la aceptación (no del presupuesto)
+ * @returns Promise con el Blob del PDF
+ */
+export async function descargarComprobanteAceptacion(
+  aceptacionId: number
+): Promise<Blob> {
+  try {
+    const response = await Api.get(
+      `/presupuestos-digitales/aceptaciones/${aceptacionId}/descargar-comprobante/`,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error al descargar comprobante de aceptación ${aceptacionId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Genera el hash SHA-256 para la firma digital
+ * Utiliza Web Crypto API nativa del navegador
+ * 
+ * @param data - String con los datos a hashear (timestamp|userId|presupuestoId|items)
+ * @returns Promise con el hash en formato hexadecimal (sin prefijo "sha256:")
+ * @throws Error si el navegador no soporta Web Crypto API
+ */
+export async function generarHashFirma(data: string): Promise<string> {
+  try {
+    // Verificar soporte de Web Crypto API
+    if (!crypto?.subtle?.digest) {
+      throw new Error('Tu navegador no soporta la generación de firmas digitales. Por favor, actualiza tu navegador.');
+    }
+
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    // Backend espera el hash sin prefijo "sha256:"
+    return hashHex;
+  } catch (error) {
+    console.error("Error al generar hash de firma digital:", error);
+    throw error instanceof Error ? error : new Error("No se pudo generar la firma digital");
+  }
+}
+
+/**
+ * Construye la estructura completa de firma digital
+ * 
+ * @param userId - ID del usuario que firma
+ * @param presupuestoId - ID del presupuesto
+ * @param itemsAceptados - Array de IDs de items (vacío si aceptación total)
+ * @param consentText - Texto del consentimiento
+ * @returns Promise con objeto FirmaDigital completo
+ */
+export async function construirFirmaDigital(
+  userId: number,
+  presupuestoId: string | number,
+  itemsAceptados: number[],
+  consentText: string
+): Promise<FirmaDigital> {
+  try {
+    // Timestamp en formato ISO 8601 UTC
+    const timestamp = new Date().toISOString();
+
+    // Construir string de datos para hashear (incluye consent para mayor seguridad)
+    const itemsStr = itemsAceptados.sort().join(',');
+    const dataParaHash = `${timestamp}|${userId}|${presupuestoId}|${itemsStr}|${consentText}`;
+
+    // Generar hash SHA-256
+    const signature_hash = await generarHashFirma(dataParaHash);
+    
+    // Intentar obtener IP (opcional, puede fallar en algunos contextos)
+    let ip_address: string | undefined;
+    try {
+      // Esta es una aproximación - en producción idealmente el backend la detecta
+      ip_address = window.location.hostname;
+    } catch {
+      ip_address = undefined;
+    }
+    
+    return {
+      timestamp,
+      user_id: userId,
+      signature_hash,
+      consent_text: consentText,
+      ip_address,
+    };
+  } catch (error) {
+    console.error("Error al construir firma digital:", error);
+    throw error;
+  }
 }

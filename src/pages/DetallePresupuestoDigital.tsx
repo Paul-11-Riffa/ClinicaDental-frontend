@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar";
+import HistorialAceptaciones from "../components/HistorialAceptaciones";
 import { toast, Toaster } from "react-hot-toast";
 import {
   obtenerPresupuestoDigital,
@@ -446,6 +447,16 @@ export default function DetallePresupuestoDigital() {
                 </p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Historial de Aceptaciones */}
+        {presupuesto.estado === 'Emitido' && (
+          <div className="mt-6">
+            <HistorialAceptaciones 
+              presupuestoId={presupuesto.id} 
+              codigoPresupuesto={presupuesto.codigo_corto}
+            />
           </div>
         )}
       </main>

@@ -404,6 +404,29 @@ const PacienteDashboard = () => {
                     </div>
                   </Link>
                 </motion.div>
+
+                {/* NUEVO: Mis Presupuestos (SP3-T003) */}
+                <motion.div variants={cardVariants} whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
+                  <Link to="/mis-presupuestos" className="group block relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-cyan-100 shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-cyan-100 group-hover:bg-white/20 p-3 rounded-xl transition-colors duration-300">
+                          <svg className="h-8 w-8 text-cyan-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-800 group-hover:text-white transition-colors duration-300">Mis Presupuestos</h3>
+                          <p className="text-sm text-slate-600 group-hover:text-cyan-50 transition-colors duration-300">Revisar y aceptar</p>
+                        </div>
+                      </div>
+                      <svg className="w-6 h-6 text-cyan-600 group-hover:text-white transform group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                </motion.div>
               </div>
             </motion.div>
 
