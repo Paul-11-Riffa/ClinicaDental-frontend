@@ -32,6 +32,9 @@ import CrearPresupuestoDigital from "./pages/CrearPresupuestoDigital";
 import DetallePresupuestoDigital from "./pages/DetallePresupuestoDigital";
 import MisPresupuestosPaciente from "./pages/MisPresupuestosPaciente";
 import AceptarPresupuesto from "./pages/AceptarPresupuesto";
+import ListarCombos from "./pages/ListarCombos";
+import CrearEditarCombo from "./pages/CrearEditarCombo";
+import DetalleCombo from "./pages/DetalleCombo";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -287,6 +290,40 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={[2]}>
                         <AceptarPresupuesto/>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Combos de Servicios (protegidas - Administradores, Odontólogos, Recepcionistas)
+            {
+                path: "/combos",
+                element: (
+                    <ProtectedRoute>
+                        <ListarCombos/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/combos/nuevo",
+                element: (
+                    <ProtectedRoute>
+                        <CrearEditarCombo/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/combos/:id",
+                element: (
+                    <ProtectedRoute>
+                        <DetalleCombo/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/combos/:id/editar",
+                element: (
+                    <ProtectedRoute>
+                        <CrearEditarCombo/>
                     </ProtectedRoute>
                 ),
             },

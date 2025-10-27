@@ -493,6 +493,38 @@ export default function AdminDashboard() {
             </div>
           </Link>
 
+          {/* Combos de Servicios */}
+          <Link
+            to="/combos"
+            className="group bg-white/80 border border-purple-100 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-purple-100 grid place-items-center shrink-0">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-purple-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                  />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                  Combos de Servicios
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Gestionar paquetes y ofertas de servicios
+                </p>
+              </div>
+            </div>
+          </Link>
+
           {/* Planes de Tratamiento */}
           <Link
             to="/planes-tratamiento"
