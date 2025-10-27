@@ -211,3 +211,150 @@ export interface FiltrosPresupuestosDigitales {
   page?: number;
   page_size?: number;
 }
+
+// ========================================
+// Aceptación de Presupuestos (SP3-T003)
+// ========================================
+
+/**
+ * Estructura de la firma digital para aceptación de presupuestos
+ * Incluye timestamp, hash SHA-256 y metadata del usuario
+ */
+export interface FirmaDigital {
+  timestamp: string;           // ISO 8601 UTC (ej: "2025-10-26T10:30:00Z")
+  user_id: number;             // Código del usuario que firma
+  signature_hash: string;      // Hash SHA-256 del contenido firmado (formato: "sha256:abc123...")
+  consent_text: string;        // Texto del consentimiento aceptado
+  ip_address?: string;         // IP del cliente (opcional)
+}
+
+/**
+ * DTO para enviar al endpoint de aceptar presupuesto
+ */
+export interface AceptarPresupuestoDTO {
+  tipo_aceptacion: "Total" | "Parcial";
+  items_aceptados?: number[];  // Requerido si tipo_aceptacion === "Parcial"
+  firma_digital: FirmaDigital;
+  notas?: string;              // Notas opcionales del paciente
+}
+
+/**
+ * Registro de una aceptación de presupuesto
+ */
+export interface AceptacionPresupuesto {
+  id: number;
+  tipo_aceptacion: "Total" | "Parcial";
+  fecha_aceptacion: string;    // ISO 8601 timestamp
+  estado: "Confirmada" | "Anulada";
+  items_aceptados?: any[];     // Items con detalles (servicio_nombre, precio_final, etc.)
+  comprobante_pdf: string;     // URL relativa del PDF (ej: "/media/comprobantes/...")
+  puede_descargar: boolean;
+  notas?: string;
+  monto_aceptado?: string;     // Monto total aceptado
+  firma_digital_hash?: string; // Hash SHA-256 de la firma digital
+}
+
+/**
+ * Validaciones detalladas de si un presupuesto puede ser aceptado
+ */
+export interface ValidacionesPresupuesto {
+  es_paciente_del_presupuesto: boolean;
+  presupuesto_emitido: boolean;
+  no_caducado: boolean;
+  no_aceptado_previamente: boolean;
+  tiene_items: boolean;
+}
+
+/**
+ * Información resumida del presupuesto para la verificación
+ */
+export interface InfoPresupuestoVerificacion {
+  id: string;
+  codigo_presupuesto: string;
+  fecha_vigencia: string;
+  dias_restantes: number;
+  permite_aceptacion_parcial: boolean;
+  items_total: number;
+  items_con_pago_parcial: number;
+}
+
+/**
+ * Respuesta del endpoint puede-aceptar
+ */
+export interface RespuestaPuedeAceptar {
+  puede_aceptar: boolean;
+  razones: string[];           // Array de razones si no puede aceptar
+  validaciones: ValidacionesPresupuesto;
+  presupuesto?: InfoPresupuestoVerificacion;  // Presente si puede_aceptar === true
+}
+
+/**
+ * Respuesta del endpoint aceptar presupuesto
+ */
+export interface RespuestaAceptarPresupuesto {
+  success: boolean;
+  mensaje: string;
+  aceptacion: AceptacionPresupuesto;
+  presupuesto: {
+    id: string;
+    codigo_presupuesto: string;
+    estado_aceptacion: string;  // "Aceptado", "Parcial", "Pendiente"
+    total_aceptaciones: number;
+  };
+}
+
+/**
+ * Historial completo de aceptaciones de un presupuesto
+ */
+export interface HistorialAceptaciones {
+  presupuesto_id: string;
+  codigo_presupuesto: string;
+  total_aceptaciones: number;
+  aceptaciones: AceptacionPresupuesto[];
+}
+
+/**
+ * Filtros para el endpoint mis-presupuestos (pacientes)
+ */
+export interface FiltrosMisPresupuestos {
+  estado_aceptacion?: "Pendiente" | "Aceptado" | "Rechazado" | "Parcial";
+  esta_vigente?: boolean;
+  plan_tratamiento?: number;
+  page?: number;
+  page_size?: number;
+}
+
+/**
+ * Item de presupuesto con información extendida para la vista del paciente
+ */
+export interface ItemPresupuestoParaPaciente {
+  id: number;
+  descripcion: string;
+  cantidad: number;
+  precio_unitario: string;
+  subtotal: string;
+  permite_pago_parcial: boolean;
+  cantidad_cuotas?: number | null;
+  pieza_dental?: string | null;
+}
+
+/**
+ * Presupuesto extendido para la vista del paciente (mis-presupuestos)
+ */
+export interface PresupuestoParaPaciente {
+  id: number;                  // ID numérico del presupuesto
+  codigo_presupuesto: string;  // UUID o código corto
+  tipo_presupuesto: "Total" | "Parcial";
+  fecha_emision: string;
+  fecha_vigencia: string;
+  esta_vigente: boolean;
+  monto_total: string;
+  monto_neto: string;
+  estado_aceptacion: "Pendiente" | "Aceptado" | "Rechazado" | "Parcial";
+  plan_tratamiento: {
+    id: number;
+    odontologo: string;
+  };
+  items: ItemPresupuestoParaPaciente[];
+  dias_restantes?: number;     // Calculado en frontend
+}

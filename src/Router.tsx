@@ -30,6 +30,8 @@ import AgregarItemPlan from "./pages/AgregarItemPlan";
 import ListarPresupuestosDigitales from "./pages/ListarPresupuestosDigitales";
 import CrearPresupuestoDigital from "./pages/CrearPresupuestoDigital";
 import DetallePresupuestoDigital from "./pages/DetallePresupuestoDigital";
+import MisPresupuestosPaciente from "./pages/MisPresupuestosPaciente";
+import AceptarPresupuesto from "./pages/AceptarPresupuesto";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -245,11 +247,11 @@ export const router = createBrowserRouter([
                 ),
             },
 
-            // Presupuestos Digitales (protegidas)
+            // Presupuestos Digitales (protegidas - Solo Odontólogos y Administradores)
             {
                 path: "/presupuestos-digitales",
                 element: (
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={[1, 3]}>
                         <ListarPresupuestosDigitales/>
                     </ProtectedRoute>
                 ),
@@ -257,7 +259,7 @@ export const router = createBrowserRouter([
             {
                 path: "/presupuestos-digitales/crear",
                 element: (
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={[1, 3]}>
                         <CrearPresupuestoDigital/>
                     </ProtectedRoute>
                 ),
@@ -265,8 +267,26 @@ export const router = createBrowserRouter([
             {
                 path: "/presupuestos-digitales/:id",
                 element: (
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={[1, 3]}>
                         <DetallePresupuestoDigital/>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Presupuestos - Vista Paciente (SP3-T003 - Solo Pacientes)
+            {
+                path: "/mis-presupuestos",
+                element: (
+                    <ProtectedRoute allowedRoles={[2]}>
+                        <MisPresupuestosPaciente/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/presupuestos/:id/aceptar",
+                element: (
+                    <ProtectedRoute allowedRoles={[2]}>
+                        <AceptarPresupuesto/>
                     </ProtectedRoute>
                 ),
             },
