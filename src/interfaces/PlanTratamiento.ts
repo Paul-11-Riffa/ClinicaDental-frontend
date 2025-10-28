@@ -26,17 +26,21 @@ export interface PlanTratamiento {
 }
 
 export interface PlanTratamientoDetalle extends PlanTratamiento {
+  // Información detallada del paciente
   paciente: {
-    id: number;
+    id: number;  // ID del paciente (usar este para filtrar consultas)
     nombre: string;
     apellido: string;
     email: string;
   };
+
+  // Información detallada del odontólogo
   odontologo: {
-    id: number;
+    id: number;  // ID del odontólogo
     nombre: string;
     especialidad: string;
   };
+
   aceptacion_tipo: string | null;
   usuario_aprueba_nombre: string | null;
   es_aprobado: boolean;

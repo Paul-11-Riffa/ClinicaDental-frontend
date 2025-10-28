@@ -35,6 +35,10 @@ import AceptarPresupuesto from "./pages/AceptarPresupuesto";
 import ListarCombos from "./pages/ListarCombos";
 import CrearEditarCombo from "./pages/CrearEditarCombo";
 import DetalleCombo from "./pages/DetalleCombo";
+import ListarSesionesPlan from "./pages/ListarSesionesPlan";
+import RegistrarSesion from "./pages/RegistrarSesion";
+import EditarSesion from "./pages/EditarSesion";
+import HistorialSesionesPaciente from "./pages/HistorialSesionesPaciente";
 
 // Función para detectar si hay subdominio
 function tieneSubdominio(): boolean {
@@ -324,6 +328,40 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <CrearEditarCombo/>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Sesiones de Tratamiento (protegidas - Odontólogos y Administradores)
+            {
+                path: "/planes/:planId/sesiones",
+                element: (
+                    <ProtectedRoute allowedRoles={[1, 3]}>
+                        <ListarSesionesPlan/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/planes/:planId/registrar-sesion",
+                element: (
+                    <ProtectedRoute allowedRoles={[1, 3]}>
+                        <RegistrarSesion/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/sesiones/:sesionId/editar",
+                element: (
+                    <ProtectedRoute allowedRoles={[1, 3]}>
+                        <EditarSesion/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "/pacientes/:pacienteId/historial-sesiones",
+                element: (
+                    <ProtectedRoute allowedRoles={[1, 3]}>
+                        <HistorialSesionesPaciente/>
                     </ProtectedRoute>
                 ),
             },

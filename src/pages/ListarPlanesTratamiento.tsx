@@ -344,31 +344,52 @@ export default function ListarPlanesTratamiento() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {plan.items_activos} / {plan.cantidad_items}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                          <Link
-                            to={`/planes-tratamiento/${plan.id}`}
-                            className="text-cyan-600 hover:text-cyan-900"
-                          >
-                            Ver
-                          </Link>
-                          {plan.puede_editarse &&
-                            (user?.idtipousuario === 1 ||
-                              user?.idtipousuario === 3) && (
-                              <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex flex-col gap-1">
+                            <div className="space-x-2">
+                              <Link
+                                to={`/planes-tratamiento/${plan.id}`}
+                                className="text-cyan-600 hover:text-cyan-900"
+                              >
+                                Ver Detalles
+                              </Link>
+                              {plan.puede_editarse &&
+                                (user?.idtipousuario === 1 ||
+                                  user?.idtipousuario === 3) && (
+                                  <>
+                                    <Link
+                                      to={`/planes-tratamiento/${plan.id}/editar`}
+                                      className="text-blue-600 hover:text-blue-900"
+                                    >
+                                      Editar
+                                    </Link>
+                                    <button
+                                      onClick={() => handleEliminarPlan(plan.id)}
+                                      className="text-red-600 hover:text-red-900"
+                                    >
+                                      Eliminar
+                                    </button>
+                                  </>
+                                )}
+                            </div>
+                            {/* Botones de Sesiones - Solo para Odontólogo y Admin */}
+                            {(user?.idtipousuario === 1 || user?.idtipousuario === 3) && (
+                              <div className="space-x-2 pt-1 border-t border-gray-200">
                                 <Link
-                                  to={`/planes-tratamiento/${plan.id}/editar`}
-                                  className="text-blue-600 hover:text-blue-900"
+                                  to={`/planes/${plan.id}/sesiones`}
+                                  className="text-purple-600 hover:text-purple-900 font-medium"
                                 >
-                                  Editar
+                                  📋 Ver Sesiones
                                 </Link>
-                                <button
-                                  onClick={() => handleEliminarPlan(plan.id)}
-                                  className="text-red-600 hover:text-red-900"
+                                <Link
+                                  to={`/planes/${plan.id}/registrar-sesion`}
+                                  className="text-green-600 hover:text-green-900 font-medium"
                                 >
-                                  Eliminar
-                                </button>
-                              </>
+                                  ➕ Registrar Sesión
+                                </Link>
+                              </div>
                             )}
+                          </div>
                         </td>
                       </tr>
                     ))}
