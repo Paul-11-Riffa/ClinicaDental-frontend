@@ -366,6 +366,30 @@ export default function DetallePlanTratamiento() {
 
           {/* Acciones del Plan */}
           <div className="flex gap-2">
+            {/* Botones de Sesiones - Solo para Odontólogo y Admin */}
+            {!plan.es_borrador && (user?.idtipousuario === 1 || user?.idtipousuario === 3) && (
+              <>
+                <button
+                  onClick={() => navigate(`/planes/${plan.id}/sesiones`)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Ver Sesiones
+                </button>
+                <button
+                  onClick={() => navigate(`/planes/${plan.id}/registrar-sesion`)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Registrar Sesión
+                </button>
+              </>
+            )}
+            
             {puedeAprobar && (
               <div className="relative">
                 <button
@@ -374,7 +398,7 @@ export default function DetallePlanTratamiento() {
                   className={`px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
                     validacion && !validacion.puede_aprobar
                       ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                   title={
                     validacion && !validacion.puede_aprobar
